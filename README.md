@@ -4,6 +4,8 @@ Site pessoal com os meus projetos. Na entrada você escolhe uma pílula: a **ver
 
 Tema preto e dourado, feito com **React + TypeScript + Vite**.
 
+🌐 **No ar:** [diegoanjo-s.vercel.app](https://diegoanjo-s.vercel.app)
+
 ## Projetos
 
 | Projeto | O que é | Código |
