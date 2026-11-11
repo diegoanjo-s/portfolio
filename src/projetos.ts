@@ -25,6 +25,16 @@ export const projetos: Projeto[] = [
     repositorio: 'https://github.com/diegoanjo-s/DevBank',
   },
   {
+    nome: 'SQL Arcade',
+    descricao:
+      'Laboratório de SQL com um PostgreSQL de verdade rodando no navegador. Banco de uma loja de games ' +
+      'e 18 missões com correção automática, do SELECT ao índice com EXPLAIN ANALYZE.',
+    tecnologias: ['SQL', 'PostgreSQL', 'PGlite (WebAssembly)', 'React', 'TypeScript'],
+    status: 'online',
+    rota: '/projetos/sql-arcade',
+    repositorio: 'https://github.com/diegoanjo-s/portfolio',
+  },
+  {
     nome: 'Próximo projeto',
     descricao: 'O próximo passo da jornada. Em construção.',
     tecnologias: ['Python?', 'Java?', '...'],

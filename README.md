@@ -11,8 +11,11 @@ Tema preto e dourado, feito com **React + TypeScript + Vite**.
 | Projeto | O que é | Código |
 |---|---|---|
 | **DevBank** | Banco digital: cadastro, login com JWT, depósito, saque, transferência e extrato | [diegoanjo-s/DevBank](https://github.com/diegoanjo-s/DevBank) |
+| **SQL Arcade** | Laboratório de SQL com PostgreSQL rodando no navegador: banco de uma loja de games e 18 missões com correção automática | [src/sql-arcade](src/sql-arcade) |
 
 O front do DevBank conversa com a API Java/Spring Boot pelo endereço em `VITE_DEVBANK_API_URL`.
+
+O SQL Arcade usa o [PGlite](https://pglite.dev), um PostgreSQL compilado para WebAssembly: cada visitante tem o próprio banco, dentro do navegador, sem servidor. As missões ficam em `src/sql-arcade/missoes.ts` e os dados em `src/sql-arcade/seed.ts`.
 
 ## Como rodar no PC
 
