@@ -94,14 +94,17 @@ button, input { font: inherit; }
    cobrir a tela inteira (como background-size: cover). Como tudo dentro
    dela usa %, as pílulas clicáveis continuam em cima das pílulas da imagem */
 .cena {
+  --altura: max(100vw / 1.4528, 100dvh);  /* altura que a imagem fica para cobrir a tela */
   position: absolute;
   left: 50%;
-  top: 50%;
+  /* Em tela larga a imagem fica mais alta que a janela e algo precisa ser cortado.
+     Cortamos 85% do excesso em cima (topo do capuz, atrás do título) e só 15% embaixo,
+     para as mãos e as pílulas aparecerem inteiras */
+  bottom: calc((100dvh - var(--altura)) * 0.15);
   z-index: 1;
-  width: max(100vw, calc(100vh * 1.4528));
   width: max(100vw, calc(100dvh * 1.4528));
   aspect-ratio: 1232 / 848;
-  translate: -50% -50%;
+  translate: -50% 0;
   transform-origin: var(--alvo-x) var(--alvo-y);
   transition: transform 1.4s cubic-bezier(.2, .8, .2, 1);
 }
@@ -111,6 +114,9 @@ button, input { font: inherit; }
 @media (max-aspect-ratio: 1/1) {
   .cena {
     width: 150vw;
+    top: 50%;
+    bottom: auto;
+    translate: -50% -50%;
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 86%, transparent 100%);
     mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 86%, transparent 100%);
   }
