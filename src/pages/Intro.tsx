@@ -3,18 +3,19 @@ import type { CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ChuvaDourada from '../components/ChuvaDourada.tsx'
 
-// Imagem de fundo (gerada com IA) e onde ficam as pílulas dentro dela, em % da largura/altura
-const IMAGEM = '/intro.jpg'
+// Vídeo de fundo (16:9, fundo preto, figura no centro) e onde ficam as pílulas
+// dentro dele, em % da largura/altura do quadro. O pôster aparece enquanto o vídeo carrega.
+const VIDEO = { webm: '/intro.webm', mp4: '/intro.mp4', poster: '/intro-poster.jpg' }
 
 const PILULAS = {
   vermelha: {
-    x: 26.3, y: 79.5,
+    x: 43.6, y: 11.5,
     cor: '255, 40, 60',
     frase: 'A realidade é só o começo.',
     rotulo: 'Pílula vermelha: entrar nos meus projetos',
   },
   azul: {
-    x: 73.8, y: 80.3,
+    x: 63.5, y: 67.5,
     cor: '40, 130, 255',
     frase: 'Volte para a ilusão.',
     rotulo: 'Pílula azul: voltar para o Google',
@@ -76,8 +77,6 @@ export default function Intro() {
 
   return (
     <div className={`intro-matrix ${ativo ? `ativo-${ativo}` : ''} ${escolhida ? 'saindo' : ''}`}>
-      {/* em tela "em pé" (celular) a imagem não cabe inteira: esta cópia borrada preenche o fundo */}
-      <img src={IMAGEM} alt="" className="fundo-borrado" aria-hidden="true" />
       <ChuvaDourada tema="matrix" intensidade={0.55} transparente destaque={ativo ? PILULAS[ativo].cor : null} rapida={!!escolhida} />
 
       <div
@@ -85,9 +84,17 @@ export default function Intro() {
         style={estiloCena}
         onAnimationEnd={(e) => { if (escolhida && e.animationName === 'mergulho') irPara(escolhida) }}
       >
-        <img src={IMAGEM} alt="Figura encapuzada oferecendo uma pílula vermelha e uma azul" className="cena-imagem" />
+        <video
+          className="cena-video"
+          autoPlay muted loop playsInline preload="auto"
+          poster={VIDEO.poster}
+          aria-label="Rosto feito de partículas entre uma pílula vermelha e uma azul"
+        >
+          <source src={VIDEO.webm} type="video/webm" />
+          <source src={VIDEO.mp4} type="video/mp4" />
+        </video>
 
-        {/* chuva binária por cima da imagem: os números "descem" sobre ela */}
+        {/* chuva binária por cima do vídeo: os números "descem" sobre ele */}
         <ChuvaDourada
           tema="matrix" intensidade={0.4} className="cena-chuva" transparente
           destaque={ativo ? PILULAS[ativo].cor : null} rapida={!!escolhida}
