@@ -7,31 +7,29 @@ import { useEffect, useRef } from 'react'
 type Tema = 'ouro' | 'matrix'
 
 const TEMAS = {
-  ouro: {
-    caracteres: '01{}<>/=;$€₿DEVBANKJAVA∑λ#@',
-    fundo: '10, 8, 6',
-    cabeca: '#fff1b8',
-    corpo: (a: number) => `rgba(212, 175, 55, ${a})`,
-    rastro: 0.09,
-  },
-  matrix: {
-    caracteres: '01',
-    fundo: '0, 0, 0',
-    cabeca: '#d6ffe0',
-    corpo: (a: number) => `rgba(0, 255, 90, ${a})`,
-    rastro: 0.07,
-  },
+  ouro: { caracteres: '01{}<>/=;$€₿DEVBANKJAVA∑λ#@', fundo: '10, 8, 6', cor: '212, 175, 55', cabeca: '255, 241, 184', rastro: 0.09 },
+  matrix: { caracteres: '01', fundo: '0, 0, 0', cor: '0, 255, 90', cabeca: '214, 255, 224', rastro: 0.07 },
 }
 
 type Props = {
   tema?: Tema
-  intensidade?: number   // 0 a 1: quantas colunas caem ao mesmo tempo
+  intensidade?: number        // 0 a 1: quantas colunas caem ao mesmo tempo
   className?: string
-  transparente?: boolean // true = não pinta fundo (para ficar por cima de uma imagem)
+  transparente?: boolean      // true = não pinta fundo (para ficar por cima de uma imagem)
+  destaque?: string | null    // cor "r, g, b" que substitui a do tema (ex.: vermelho no hover)
+  rapida?: boolean            // true = cai mais rápido (no clique)
 }
 
-export default function ChuvaDourada({ tema = 'ouro', intensidade = 1, className = 'chuva', transparente = false }: Props) {
+export default function ChuvaDourada({
+  tema = 'ouro', intensidade = 1, className = 'chuva', transparente = false, destaque = null, rapida = false,
+}: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  // Guardados em ref para a animação ler o valor novo sem reiniciar a chuva
+  const destaqueRef = useRef(destaque)
+  const rapidaRef = useRef(rapida)
+  useEffect(() => { destaqueRef.current = destaque }, [destaque])
+  useEffect(() => { rapidaRef.current = rapida }, [rapida])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -40,15 +38,13 @@ export default function ChuvaDourada({ tema = 'ouro', intensidade = 1, className
     if (!ctx) return
 
     const t = TEMAS[tema]
-    const tamanho = tema === 'matrix' ? 15 : 16
+    const tamanho = tema === 'matrix' ? 16 : 16
     let colunas: number[] = []
     let quadro = 0
-    const reduzido = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
     function ajustar() {
-      const caixa = canvas!.getBoundingClientRect()
-      canvas!.width = Math.max(1, Math.round(caixa.width))
-      canvas!.height = Math.max(1, Math.round(caixa.height))
+      canvas!.width = Math.max(1, canvas!.offsetWidth)
+      canvas!.height = Math.max(1, canvas!.offsetHeight)
       const total = Math.ceil(canvas!.width / tamanho)
       colunas = Array.from({ length: total }, () => Math.random() * -canvas!.height / tamanho)
       if (!transparente) {
@@ -68,24 +64,24 @@ export default function ChuvaDourada({ tema = 'ouro', intensidade = 1, className
         ctx!.fillStyle = `rgba(${t.fundo}, ${t.rastro})`
         ctx!.fillRect(0, 0, canvas!.width, canvas!.height)
       }
+
+      const cor = destaqueRef.current ?? t.cor
+      const cabeca = destaqueRef.current ? '255, 255, 255' : t.cabeca
       ctx!.font = `${tamanho}px "JetBrains Mono", monospace`
 
       colunas.forEach((y, i) => {
         if (Math.random() > intensidade) return
-        const letra = t.caracteres[Math.floor(Math.random() * t.caracteres.length)]
         const x = i * tamanho
         const py = y * tamanho
+        const letra = () => t.caracteres[Math.floor(Math.random() * t.caracteres.length)]
 
         // a letra de baixo (a "cabeça") brilha mais, como no efeito clássico
-        ctx!.fillStyle = t.cabeca
-        ctx!.shadowColor = t.cabeca
-        ctx!.shadowBlur = tema === 'matrix' ? 8 : 0
-        ctx!.fillText(letra, x, py)
-        ctx!.shadowBlur = 0
+        ctx!.fillStyle = `rgb(${cabeca})`
+        ctx!.fillText(letra(), x, py)
 
-        // repinta a letra de cima com a cor normal, assim só a ponta fica clara
-        ctx!.fillStyle = t.corpo(0.45 + Math.random() * 0.4)
-        ctx!.fillText(t.caracteres[Math.floor(Math.random() * t.caracteres.length)], x, py - tamanho)
+        // a letra de cima volta para a cor normal, assim só a ponta fica clara
+        ctx!.fillStyle = `rgba(${cor}, ${0.5 + Math.random() * 0.4})`
+        ctx!.fillText(letra(), x, py - tamanho)
 
         if (py > canvas!.height && Math.random() > 0.975) colunas[i] = 0
         else colunas[i] = y + 1
@@ -95,18 +91,14 @@ export default function ChuvaDourada({ tema = 'ouro', intensidade = 1, className
     ajustar()
     window.addEventListener('resize', ajustar)
 
+    // Roda a ~20 quadros por segundo; no modo rápido, a cada quadro
     let id = 0
     function loop() {
       quadro++
-      if (quadro % 3 === 0) desenhar()
+      if (rapidaRef.current || quadro % 3 === 0) desenhar()
       id = requestAnimationFrame(loop)
     }
-
-    if (reduzido) {
-      for (let i = 0; i < 40; i++) desenhar()
-    } else {
-      loop()
-    }
+    loop()
 
     return () => {
       cancelAnimationFrame(id)

@@ -5,92 +5,134 @@ import ChuvaDourada from '../components/ChuvaDourada.tsx'
 
 // Imagem de fundo (gerada com IA) e onde ficam as pílulas dentro dela, em % da largura/altura
 const IMAGEM = '/intro.jpg'
-const PILULA_VERMELHA = { x: 26.3, y: 79.5 }
-const PILULA_AZUL = { x: 73.8, y: 80.3 }
 
-const FRASE = 'Escolha. Uma leva aos meus projetos. A outra, de volta ao mundo de sempre.'
+const PILULAS = {
+  vermelha: {
+    x: 26.3, y: 79.5,
+    cor: '255, 40, 60',
+    frase: 'A realidade é só o começo.',
+    rotulo: 'Pílula vermelha: entrar nos meus projetos',
+  },
+  azul: {
+    x: 73.8, y: 80.3,
+    cor: '40, 130, 255',
+    frase: 'Volte para a ilusão.',
+    rotulo: 'Pílula azul: voltar para o Google',
+  },
+} as const
 
-type Escolha = 'vermelha' | 'azul' | null
+type Lado = keyof typeof PILULAS
+const DURACAO_SAIDA = 1500 // ms da animação de clique
+
+// Efeito de máquina de escrever
+function useDigitar(frase: string, atraso: number) {
+  const [texto, setTexto] = useState('')
+  useEffect(() => {
+    let i = 0
+    let id = 0
+    const inicio = window.setTimeout(() => {
+      id = window.setInterval(() => {
+        i++
+        setTexto(frase.slice(0, i))
+        if (i >= frase.length) window.clearInterval(id)
+      }, 55)
+    }, atraso)
+    return () => { window.clearTimeout(inicio); window.clearInterval(id) }
+  }, [frase, atraso])
+  return texto
+}
 
 export default function Intro() {
   const navigate = useNavigate()
-  const [texto, setTexto] = useState('')
-  const [foco, setFoco] = useState<Escolha>(null)
-  const [escolhida, setEscolhida] = useState<Escolha>(null)
+  const [foco, setFoco] = useState<Lado | null>(null)
+  const [escolhida, setEscolhida] = useState<Lado | null>(null)
 
-  // Efeito de máquina de escrever na frase
-  useEffect(() => {
-    let i = 0
-    const id = setInterval(() => {
-      i++
-      setTexto(FRASE.slice(0, i))
-      if (i >= FRASE.length) clearInterval(id)
-    }, 45)
-    return () => clearInterval(id)
-  }, [])
-
-  function escolher(qual: 'vermelha' | 'azul') {
-    if (escolhida) return
-    setEscolhida(qual)
-    setTimeout(() => {
-      if (qual === 'vermelha') navigate('/projetos')
-      else window.location.href = 'https://www.google.com'
-    }, 1100)
+  const textos: Record<Lado, string> = {
+    vermelha: useDigitar(PILULAS.vermelha.frase, 600),
+    azul: useDigitar(PILULAS.azul.frase, 2400),
   }
 
-  // O zoom (no hover e no clique) mira na pílula escolhida
-  const alvo = (escolhida ?? foco) === 'azul' ? PILULA_AZUL : PILULA_VERMELHA
-  const estiloCena: CSSProperties = { transformOrigin: `${alvo.x}% ${alvo.y}%` }
+  function irPara(lado: Lado) {
+    if (lado === 'vermelha') navigate('/projetos')
+    else window.location.href = 'https://www.google.com'
+  }
+
+  function escolher(lado: Lado) {
+    if (escolhida) return
+    setEscolhida(lado)
+  }
+
+  // Muda de página quando o mergulho termina (com uma rede de segurança, caso a animação não rode)
+  useEffect(() => {
+    if (!escolhida) return
+    const id = window.setTimeout(() => irPara(escolhida), DURACAO_SAIDA + 1500)
+    return () => window.clearTimeout(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [escolhida])
+
+  const ativo = escolhida ?? foco
+  const alvo = PILULAS[ativo ?? 'vermelha']
+  const estiloCena = { '--alvo-x': `${alvo.x}%`, '--alvo-y': `${alvo.y}%` } as CSSProperties
 
   return (
-    <div className={`intro-matrix foco-${foco ?? 'nenhum'} ${escolhida ? `escolheu-${escolhida}` : ''}`}>
-      {/* chuva binária no fundo da tela inteira */}
-      <ChuvaDourada tema="matrix" intensidade={0.55} />
+    <div className={`intro-matrix ${ativo ? `ativo-${ativo}` : ''} ${escolhida ? 'saindo' : ''}`}>
+      {/* em tela "em pé" (celular) a imagem não cabe inteira: esta cópia borrada preenche o fundo */}
+      <img src={IMAGEM} alt="" className="fundo-borrado" aria-hidden="true" />
+      <ChuvaDourada tema="matrix" intensidade={0.55} transparente destaque={ativo ? PILULAS[ativo].cor : null} rapida={!!escolhida} />
 
-      <header className="intro-titulo camada">
-        <h1 className="ouro">DIEGO ANJOS</h1>
-        <p className="subtitulo">
-          {texto}
-          <span className="cursor">&nbsp;</span>
-        </p>
-      </header>
-
-      <div className="cena camada" style={estiloCena}>
+      <div
+        className="cena"
+        style={estiloCena}
+        onAnimationEnd={(e) => { if (escolhida && e.animationName === 'mergulho') irPara(escolhida) }}
+      >
         <img src={IMAGEM} alt="Figura encapuzada oferecendo uma pílula vermelha e uma azul" className="cena-imagem" />
 
-        {/* chuva binária por cima da imagem, para os números "descerem" sobre ela */}
-        <ChuvaDourada tema="matrix" intensidade={0.35} className="cena-chuva" transparente />
+        {/* chuva binária por cima da imagem: os números "descem" sobre ela */}
+        <ChuvaDourada
+          tema="matrix" intensidade={0.4} className="cena-chuva" transparente
+          destaque={ativo ? PILULAS[ativo].cor : null} rapida={!!escolhida}
+        />
 
-        <button
-          className="ponto vermelha"
-          style={{ left: `${PILULA_VERMELHA.x}%`, top: `${PILULA_VERMELHA.y}%` }}
-          onMouseEnter={() => setFoco('vermelha')}
-          onMouseLeave={() => setFoco(null)}
-          onFocus={() => setFoco('vermelha')}
-          onBlur={() => setFoco(null)}
-          onClick={() => escolher('vermelha')}
-          aria-label="Pílula vermelha: entrar nos meus projetos"
-        >
-          <span className="anel" />
-          <span className="legenda">Entrar</span>
-        </button>
+        {/* gradientes coloridos que aparecem no hover */}
+        {(Object.keys(PILULAS) as Lado[]).flatMap((lado) =>
+          (['cor', 'luz'] as const).map((camada) => (
+            <div
+              key={lado + camada}
+              className={`tinta ${camada} ${lado}`}
+              style={{ '--x': `${PILULAS[lado].x}%`, '--y': `${PILULAS[lado].y}%`, '--cor': PILULAS[lado].cor } as CSSProperties}
+            />
+          )),
+        )}
 
-        <button
-          className="ponto azul"
-          style={{ left: `${PILULA_AZUL.x}%`, top: `${PILULA_AZUL.y}%` }}
-          onMouseEnter={() => setFoco('azul')}
-          onMouseLeave={() => setFoco(null)}
-          onFocus={() => setFoco('azul')}
-          onBlur={() => setFoco(null)}
-          onClick={() => escolher('azul')}
-          aria-label="Pílula azul: voltar para o Google"
-        >
-          <span className="anel" />
-          <span className="legenda">Voltar ao Google</span>
-        </button>
+        {(Object.keys(PILULAS) as Lado[]).map((lado) => {
+          const p = PILULAS[lado]
+          return (
+            <div key={lado} className={`pilula-area ${lado}`} style={{ left: `${p.x}%`, top: `${p.y}%`, '--cor': p.cor } as CSSProperties}>
+              <p className="frase" aria-hidden="true">
+                {textos[lado]}
+                {textos[lado].length < p.frase.length && <span className="cursor">&nbsp;</span>}
+              </p>
+              <button
+                className="ponto"
+                onMouseEnter={() => setFoco(lado)}
+                onMouseLeave={() => setFoco(null)}
+                onFocus={() => setFoco(lado)}
+                onBlur={() => setFoco(null)}
+                onClick={() => escolher(lado)}
+                aria-label={p.rotulo}
+              >
+                <span className="anel" />
+              </button>
+            </div>
+          )
+        })}
       </div>
 
-      {escolhida && <div className={`flash ${escolhida}`} />}
+      <header className="intro-titulo">
+        <h1 className="ouro">DIEGO ANJOS</h1>
+      </header>
+
+      {escolhida && <div className="flash" style={{ '--cor': PILULAS[escolhida].cor } as CSSProperties} />}
     </div>
   )
 }
