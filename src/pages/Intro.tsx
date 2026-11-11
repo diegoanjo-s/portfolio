@@ -1,17 +1,22 @@
 import { useEffect, useState } from 'react'
+import type { CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ChuvaDourada from '../components/ChuvaDourada.tsx'
 
-// Quando a imagem de fundo ficar pronta, coloque-a em public/intro.jpg
-// e troque null por '/intro.jpg'
-const IMAGEM_DE_FUNDO: string | null = null
+// Imagem de fundo (gerada com IA) e onde ficam as pílulas dentro dela, em % da largura/altura
+const IMAGEM = '/intro.jpg'
+const PILULA_VERMELHA = { x: 26.3, y: 79.5 }
+const PILULA_AZUL = { x: 73.8, y: 80.3 }
 
 const FRASE = 'Escolha. Uma leva aos meus projetos. A outra, de volta ao mundo de sempre.'
+
+type Escolha = 'vermelha' | 'azul' | null
 
 export default function Intro() {
   const navigate = useNavigate()
   const [texto, setTexto] = useState('')
-  const [saindo, setSaindo] = useState(false)
+  const [foco, setFoco] = useState<Escolha>(null)
+  const [escolhida, setEscolhida] = useState<Escolha>(null)
 
   // Efeito de máquina de escrever na frase
   useEffect(() => {
@@ -24,46 +29,68 @@ export default function Intro() {
     return () => clearInterval(id)
   }, [])
 
-  function escolherVermelha() {
-    setSaindo(true)
-    setTimeout(() => navigate('/projetos'), 900)
+  function escolher(qual: 'vermelha' | 'azul') {
+    if (escolhida) return
+    setEscolhida(qual)
+    setTimeout(() => {
+      if (qual === 'vermelha') navigate('/projetos')
+      else window.location.href = 'https://www.google.com'
+    }, 1100)
   }
 
-  function escolherAzul() {
-    window.location.href = 'https://www.google.com'
-  }
+  // O zoom (no hover e no clique) mira na pílula escolhida
+  const alvo = (escolhida ?? foco) === 'azul' ? PILULA_AZUL : PILULA_VERMELHA
+  const estiloCena: CSSProperties = { transformOrigin: `${alvo.x}% ${alvo.y}%` }
 
   return (
-    <>
-      {!IMAGEM_DE_FUNDO && <ChuvaDourada />}
-      {saindo && <div className="flash" />}
+    <div className={`intro-matrix foco-${foco ?? 'nenhum'} ${escolhida ? `escolheu-${escolhida}` : ''}`}>
+      {/* chuva binária no fundo da tela inteira */}
+      <ChuvaDourada tema="matrix" intensidade={0.55} />
 
-      <main
-        className={`intro camada ${saindo ? 'saindo' : ''} ${IMAGEM_DE_FUNDO ? 'com-imagem' : ''}`}
-        style={IMAGEM_DE_FUNDO ? { backgroundImage: `url(${IMAGEM_DE_FUNDO})` } : undefined}
-      >
-        <div>
-          <h1 className="ouro">DIEGO ANJOS</h1>
-          <p className="subtitulo">
-            {texto}
-            <span className="cursor">&nbsp;</span>
-          </p>
-        </div>
+      <header className="intro-titulo camada">
+        <h1 className="ouro">DIEGO ANJOS</h1>
+        <p className="subtitulo">
+          {texto}
+          <span className="cursor">&nbsp;</span>
+        </p>
+      </header>
 
-        <div className="pilulas">
-          <button className="escolha vermelha" onClick={escolherVermelha} aria-label="Pílula vermelha: entrar nos projetos">
-            <div className="pilula" />
-            <span className="rotulo">Pílula vermelha</span>
-            <span className="dica">Entrar e ver até onde vai o código</span>
-          </button>
+      <div className="cena camada" style={estiloCena}>
+        <img src={IMAGEM} alt="Figura encapuzada oferecendo uma pílula vermelha e uma azul" className="cena-imagem" />
 
-          <button className="escolha azul" onClick={escolherAzul} aria-label="Pílula azul: voltar para o Google">
-            <div className="pilula" />
-            <span className="rotulo">Pílula azul</span>
-            <span className="dica">Voltar para o Google e esquecer tudo</span>
-          </button>
-        </div>
-      </main>
-    </>
+        {/* chuva binária por cima da imagem, para os números "descerem" sobre ela */}
+        <ChuvaDourada tema="matrix" intensidade={0.35} className="cena-chuva" transparente />
+
+        <button
+          className="ponto vermelha"
+          style={{ left: `${PILULA_VERMELHA.x}%`, top: `${PILULA_VERMELHA.y}%` }}
+          onMouseEnter={() => setFoco('vermelha')}
+          onMouseLeave={() => setFoco(null)}
+          onFocus={() => setFoco('vermelha')}
+          onBlur={() => setFoco(null)}
+          onClick={() => escolher('vermelha')}
+          aria-label="Pílula vermelha: entrar nos meus projetos"
+        >
+          <span className="anel" />
+          <span className="legenda">Entrar</span>
+        </button>
+
+        <button
+          className="ponto azul"
+          style={{ left: `${PILULA_AZUL.x}%`, top: `${PILULA_AZUL.y}%` }}
+          onMouseEnter={() => setFoco('azul')}
+          onMouseLeave={() => setFoco(null)}
+          onFocus={() => setFoco('azul')}
+          onBlur={() => setFoco(null)}
+          onClick={() => escolher('azul')}
+          aria-label="Pílula azul: voltar para o Google"
+        >
+          <span className="anel" />
+          <span className="legenda">Voltar ao Google</span>
+        </button>
+      </div>
+
+      {escolhida && <div className={`flash ${escolhida}`} />}
+    </div>
   )
 }
