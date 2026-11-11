@@ -243,34 +243,40 @@
 .arc-tabela-resultado td.nulo { color: #6e6450; font-style: italic; }
 
 /* ---------- Porta de entrada (vídeo) ---------- */
+/* o vídeo fica com as cores originais (cinza claro).
+   O fundo imita as bordas do vídeo, então o quadro se funde na tela. */
 .arc-entrada {
   position: fixed;
   inset: 0;
   z-index: 40; /* abaixo das linhas de TV (50), que passam por cima do vídeo também */
-  background: #000;
+  background: linear-gradient(to right, #b0b0b0, #bebebe 50%, #cdcdcd);
   overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
 }
-/* o fundo preto já nasce opaco; só o conteúdo aparece aos poucos */
+/* o fundo já nasce opaco; só o conteúdo aparece aos poucos */
 .arc-entrada > * { animation: arc-entrada-chega 0.8s ease-out; }
 
-/* o vídeo é cinza claro: invertido + sépia vira dourado sobre preto.
-   "contain" mostra o quadro inteiro (texto à esquerda, rosto à direita) em qualquer tela;
-   a máscara apaga as bordas para ele se fundir no preto */
+/* o maior 16:9 que cabe inteiro na tela: mostra o texto (esquerda) e o rosto (direita).
+   A máscara suaviza as 4 bordas para não aparecer um retângulo */
 .arc-entrada-video {
   position: absolute;
   top: 50%;
   left: 50%;
   translate: -50% -50%;
-  width: min(100vw, 177.78vh); /* o maior 16:9 que cabe inteiro na tela */
+  width: min(100vw, 177.78vh);
   aspect-ratio: 16 / 9;
   object-fit: cover;
-  filter: invert(1) sepia(1) saturate(1.7) brightness(0.75) contrast(2.1);
-  -webkit-mask-image: radial-gradient(ellipse at center, #000 52%, transparent 76%);
-  mask-image: radial-gradient(ellipse at center, #000 52%, transparent 76%);
+  -webkit-mask-image:
+    linear-gradient(to right, transparent, #000 5%, #000 95%, transparent),
+    linear-gradient(to bottom, transparent, #000 8%, #000 92%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent, #000 5%, #000 95%, transparent),
+    linear-gradient(to bottom, transparent, #000 8%, #000 92%, transparent);
+  mask-composite: intersect;
 }
 
 .arc-entrada-voltar {
@@ -278,10 +284,11 @@
   top: 1.1rem;
   left: 1.5rem;
   z-index: 2;
-  color: var(--arc-suave);
+  color: #2b2b2b;
   font-size: 0.9rem;
+  font-weight: 600;
 }
-.arc-entrada-voltar:hover { color: var(--arc-ouro-claro); text-decoration: none; }
+.arc-entrada-voltar:hover { color: #000; text-decoration: none; }
 
 .arc-entrada-painel {
   position: relative;
@@ -294,34 +301,40 @@
   text-align: center;
 }
 
-.arc-entrada-painel h1 { margin: 0; font-size: clamp(1.4rem, 4.5vw, 2.8rem); }
+/* sobre o fundo claro: logo preto com sombra dourada */
+.arc-entrada-painel h1 {
+  margin: 0;
+  font-size: clamp(1.4rem, 4.5vw, 2.8rem);
+  color: #111;
+  text-shadow: 3px 3px 0 var(--arc-ouro);
+}
 
 .arc-start {
   cursor: pointer;
   padding: 0.95rem 1.6rem;
-  border: 3px solid var(--arc-ouro);
-  background: rgba(0, 0, 0, 0.6);
+  border: 3px solid #000;
+  background: #0b0a08;
   color: var(--arc-ouro-claro);
   font-size: clamp(0.7rem, 1.8vw, 0.95rem);
-  box-shadow: 4px 4px 0 #5a4310, 0 0 26px rgba(212, 175, 55, 0.35);
+  box-shadow: 4px 4px 0 var(--arc-ouro);
   animation: arc-pisca 1.1s steps(1) infinite;
   transition: transform 0.08s, box-shadow 0.08s, background 0.2s;
 }
-.arc-start:hover { background: var(--arc-ouro); color: #1a1206; animation: none; }
-.arc-start:active { transform: translate(4px, 4px); box-shadow: 0 0 0 #5a4310; }
+.arc-start:hover { background: var(--arc-ouro); color: #000; animation: none; }
+.arc-start:active { transform: translate(4px, 4px); box-shadow: 0 0 0 var(--arc-ouro); }
 
-.arc-entrada-status { margin: 0; font-size: 0.8rem; color: var(--arc-suave); }
+.arc-entrada-status { margin: 0; font-size: 0.8rem; color: #333; }
 
 @keyframes arc-entrada-chega { from { opacity: 0; } }
 
-/* ao apertar START: clarão dourado, zoom no vídeo e a tela some */
+/* ao apertar START: clarão, zoom no vídeo e a tela some */
 .arc-entrada.saindo { animation: arc-entrada-sai 0.9s ease-in forwards; pointer-events: none; }
 .arc-entrada.saindo .arc-entrada-video { animation: arc-entrada-zoom 0.9s ease-in forwards; }
-.arc-entrada.saindo .arc-start { animation: none; background: var(--arc-ouro-claro); color: #1a1206; }
+.arc-entrada.saindo .arc-start { animation: none; background: var(--arc-ouro); color: #000; }
 
 @keyframes arc-entrada-sai {
   0%, 35% { opacity: 1; filter: none; }
-  45% { filter: brightness(2.2); }
+  45% { filter: brightness(1.6); }
   100% { opacity: 0; filter: brightness(1); }
 }
 @keyframes arc-entrada-zoom { to { transform: scale(1.35); } }
@@ -335,15 +348,4 @@
     -webkit-mask-image: radial-gradient(ellipse 30% 55% at 76% 50%, #000 40%, transparent 100%);
     mask-image: radial-gradient(ellipse 30% 55% at 76% 50%, #000 40%, transparent 100%);
   }
-}
-
-/* ---------- Celular ---------- */
-@media (max-width: 900px) {
-  .arc-topo { grid-template-columns: 1fr; justify-items: center; gap: 0.8rem; padding: 1rem; }
-  .arc-voltar { justify-self: start; }
-  .arc-xp { align-items: center; }
-  .arc-xp-barra span { width: 6px; }
-  .arc-corpo { grid-template-columns: 1fr; padding: 1rem; }
-  .arc-lateral { order: 2; }
-  .arc-missoes { max-height: 320px; overflow: auto; }
 }

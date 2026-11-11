@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom'
 
 // ============================================================
 //  PORTA DE ENTRADA do SQL Arcade
-//  O vídeo original é cinza claro; o filtro do CSS o deixa
-//  dourado sobre preto. Enquanto ele toca, o banco carrega por trás.
+//  O vídeo fica com as cores originais. Enquanto ele toca,
+//  o banco carrega por trás.
 //  Duas versões do mesmo vídeo: o navegador baixa só UMA delas
 //  (WebM é menor; o MP4 fica de reserva para quem não tem WebM).
 // ============================================================
