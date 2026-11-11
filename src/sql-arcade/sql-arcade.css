@@ -242,6 +242,101 @@
 .arc-tabela-resultado tr:nth-child(even) td { background: rgba(255, 255, 255, 0.015); }
 .arc-tabela-resultado td.nulo { color: #6e6450; font-style: italic; }
 
+/* ---------- Porta de entrada (vídeo) ---------- */
+.arc-entrada {
+  position: fixed;
+  inset: 0;
+  z-index: 40; /* abaixo das linhas de TV (50), que passam por cima do vídeo também */
+  background: #000;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+/* o fundo preto já nasce opaco; só o conteúdo aparece aos poucos */
+.arc-entrada > * { animation: arc-entrada-chega 0.8s ease-out; }
+
+/* o vídeo é cinza claro: invertido + sépia vira dourado sobre preto.
+   "contain" mostra o quadro inteiro (texto à esquerda, rosto à direita) em qualquer tela;
+   a máscara apaga as bordas para ele se fundir no preto */
+.arc-entrada-video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  width: min(100vw, 177.78vh); /* o maior 16:9 que cabe inteiro na tela */
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  filter: invert(1) sepia(1) saturate(1.7) brightness(0.75) contrast(2.1);
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 52%, transparent 76%);
+  mask-image: radial-gradient(ellipse at center, #000 52%, transparent 76%);
+}
+
+.arc-entrada-voltar {
+  position: absolute;
+  top: 1.1rem;
+  left: 1.5rem;
+  z-index: 2;
+  color: var(--arc-suave);
+  font-size: 0.9rem;
+}
+.arc-entrada-voltar:hover { color: var(--arc-ouro-claro); text-decoration: none; }
+
+.arc-entrada-painel {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+  padding: 0 1rem 7vh;
+  text-align: center;
+}
+
+.arc-entrada-painel h1 { margin: 0; font-size: clamp(1.4rem, 4.5vw, 2.8rem); }
+
+.arc-start {
+  cursor: pointer;
+  padding: 0.95rem 1.6rem;
+  border: 3px solid var(--arc-ouro);
+  background: rgba(0, 0, 0, 0.6);
+  color: var(--arc-ouro-claro);
+  font-size: clamp(0.7rem, 1.8vw, 0.95rem);
+  box-shadow: 4px 4px 0 #5a4310, 0 0 26px rgba(212, 175, 55, 0.35);
+  animation: arc-pisca 1.1s steps(1) infinite;
+  transition: transform 0.08s, box-shadow 0.08s, background 0.2s;
+}
+.arc-start:hover { background: var(--arc-ouro); color: #1a1206; animation: none; }
+.arc-start:active { transform: translate(4px, 4px); box-shadow: 0 0 0 #5a4310; }
+
+.arc-entrada-status { margin: 0; font-size: 0.8rem; color: var(--arc-suave); }
+
+@keyframes arc-entrada-chega { from { opacity: 0; } }
+
+/* ao apertar START: clarão dourado, zoom no vídeo e a tela some */
+.arc-entrada.saindo { animation: arc-entrada-sai 0.9s ease-in forwards; pointer-events: none; }
+.arc-entrada.saindo .arc-entrada-video { animation: arc-entrada-zoom 0.9s ease-in forwards; }
+.arc-entrada.saindo .arc-start { animation: none; background: var(--arc-ouro-claro); color: #1a1206; }
+
+@keyframes arc-entrada-sai {
+  0%, 35% { opacity: 1; filter: none; }
+  45% { filter: brightness(2.2); }
+  100% { opacity: 0; filter: brightness(1); }
+}
+@keyframes arc-entrada-zoom { to { transform: scale(1.35); } }
+
+/* celular em pé: o quadro inteiro ficaria minúsculo; mostra o rosto grande */
+@media (orientation: portrait) {
+  .arc-entrada-video {
+    width: auto;
+    height: 62vh;
+    translate: -76% -62%;
+    -webkit-mask-image: radial-gradient(ellipse 30% 55% at 76% 50%, #000 40%, transparent 100%);
+    mask-image: radial-gradient(ellipse 30% 55% at 76% 50%, #000 40%, transparent 100%);
+  }
+}
+
 /* ---------- Celular ---------- */
 @media (max-width: 900px) {
   .arc-topo { grid-template-columns: 1fr; justify-items: center; gap: 0.8rem; padding: 1rem; }

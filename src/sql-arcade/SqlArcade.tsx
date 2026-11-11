@@ -12,6 +12,7 @@ import type { Resultado } from './banco.ts'
 import { FASES, MISSOES } from './missoes.ts'
 import type { Missao } from './missoes.ts'
 import { TABELAS } from './seed.ts'
+import Entrada from './Entrada.tsx'
 import './sql-arcade.css'
 
 const CHAVE_PROGRESSO = 'sqlarcade.concluidas'
@@ -71,6 +72,8 @@ export default function SqlArcade() {
   const [mostrarDica, setMostrarDica] = useState(false)
   const [rodando, setRodando] = useState(false)
   const [abertas, setAbertas] = useState<string[]>(['jogos'])
+  const [entrou, setEntrou] = useState(false) // já passou pela porta de entrada?
+  const fecharEntrada = useCallback(() => setEntrou(true), [])
 
   const missao = MISSOES.find((m) => m.id === missaoId) as Missao
   const chaveRascunho = modo === 'livre' ? '__livre__' : missaoId
@@ -170,6 +173,8 @@ export default function SqlArcade() {
 
   return (
     <div className="arc">
+      {!entrou && <Entrada pronto={!!db} aoEntrar={fecharEntrada} />}
+
       <header className="arc-topo">
         <Link to="/projetos" className="arc-voltar">← Projetos</Link>
         <div className="arc-logo">
