@@ -101,6 +101,21 @@ button, input { font: inherit; }
   height: 100%;
   object-fit: cover;
   user-select: none;
+  /* no vídeo, a mão termina num corte reto (direita) e o pescoço no fim do quadro (embaixo):
+     a máscara apaga essas bordas para elas sumirem no preto */
+  -webkit-mask-image:
+    linear-gradient(to right, #000 64%, transparent 71%),
+    linear-gradient(to bottom, #000 84%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, #000 64%, transparent 71%),
+    linear-gradient(to bottom, #000 84%, transparent 100%);
+  mask-composite: intersect;
+}
+
+/* celular: a figura sobe um pouco, abrindo espaço para o nome embaixo */
+@media (max-aspect-ratio: 1/1) {
+  .cena { top: calc(50% - 5dvh); }
 }
 
 .cena-chuva {
@@ -242,8 +257,8 @@ button, input { font: inherit; }
 
 /* celular: não há preto dos lados, então a vermelha fala por cima e a azul por baixo */
 @media (max-aspect-ratio: 1/1) {
-  .frase { max-width: 56vw; font-size: 3.6vw; right: auto; left: 50%; top: auto; }
-  .vermelha .frase { bottom: 112%; translate: calc(-50% + 8vw) 0; }
+  .frase { max-width: 76vw; font-size: 3.3vw; right: auto; left: 50%; top: auto; }
+  .vermelha .frase { bottom: 112%; translate: calc(-50% + 9vw) 0; }
   .azul .frase { top: 112%; translate: calc(-50% - 22vw) 0; }
 }
 
@@ -268,7 +283,9 @@ button, input { font: inherit; }
 }
 
 @media (max-aspect-ratio: 1/1) {
-  .intro-titulo { top: 5vh; width: auto; right: 0; translate: none; }
+  /* celular: o nome vai para baixo da figura, onde sobra preto */
+  .intro-titulo { top: auto; bottom: 6dvh; width: auto; right: 0; translate: none; }
+  .intro-titulo h1 { font-size: clamp(1.8rem, 9vw, 3rem); }
 }
 
 /* ---------- Clique: mergulho na pílula ---------- */
