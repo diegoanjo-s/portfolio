@@ -349,3 +349,24 @@
     mask-image: radial-gradient(ellipse 30% 55% at 76% 50%, #000 40%, transparent 100%);
   }
 }
+
+/* ---------- Celular ---------- */
+@media (max-width: 900px) {
+  .arc-topo { grid-template-columns: 1fr; justify-items: center; gap: 0.8rem; padding: 1rem; }
+  .arc-voltar { justify-self: start; }
+  .arc-xp { align-items: center; }
+  .arc-xp-barra span { width: 6px; }
+  .arc-corpo { grid-template-columns: 1fr; padding: 1rem; }
+  .arc-lateral { order: 2; }
+  .arc-missoes { max-height: 320px; overflow: auto; }
+}
+
+/* celular pequeno: botões dividem a linha e o editor usa 16px
+   (com menos que isso o iPhone dá zoom sozinho ao tocar para digitar) */
+@media (max-width: 600px) {
+  .arc-barra .arc-botao { flex: 1 1 auto; text-align: center; }
+  .arc-acoes-missao .arc-botao { flex: 1 1 auto; text-align: center; }
+  .arc-editor .cm-content, .arc-editor .cm-gutters { font-size: 16px; }
+  .arc-cartao { padding: 1.1rem 1rem; }
+  .arc-cartao h1 { font-size: 1.25rem; }
+}
